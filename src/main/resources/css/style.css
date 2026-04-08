@@ -1,0 +1,569 @@
+.left-side-vbox {
+    -fx-background-color: #17171f;
+    -fx-padding: 20;
+}
+
+.appName {
+    -fx-text-fill: white;
+    -fx-font-size: 22;
+    -fx-font-family: "Syne ExtraBold";
+}
+
+.menu-item-heading {
+    -fx-font-size: 10;
+    -fx-text-fill: #7b7b96;
+    -fx-font-family: "DM Sans Light";
+}
+
+.left-menu-item {
+    -fx-padding: 5 0 5 10;
+    -fx-pref-width: 200;
+    -fx-font-size: 14;
+    -fx-text-fill: #7b7b96;
+    -fx-font-family: "DM Sans Light";
+}
+
+.menu-time-active {
+    -fx-text-fill: #f0f0f5;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, #ff6b6b, #ff9a3c);;
+    -fx-border-width: 0 0 0 3;
+    -fx-border-insets: 0;
+    -fx-border-radius: 0;
+}
+
+
+.left-menu-item:hover {
+    -fx-background-color: #1e1e28;
+    -fx-text-fill: #f0f0f5;
+    -fx-border-color: linear-gradient(from 0% 0% to 100% 100%, #ff6b6b, #ff9a3c);;
+    -fx-border-width: 0 0 0 3;
+    -fx-border-insets: 0;
+    -fx-border-radius: 0;
+}
+
+.right-side-vbox {
+    -fx-background-color: black;
+    -fx-padding: 25;
+}
+
+.topTextLabel {
+    -fx-font-size: 22;
+    -fx-text-fill: #f0f0f5;
+    -fx-font-family: "Syne ExtraBold";
+}
+
+.topSecondTextLabel {
+    -fx-font-size: 22;
+    -fx-text-fill: #7b7b96;
+}
+
+.fileCountLabel {
+    -fx-padding: 20 0 0 0;
+    -fx-font-size: 20;
+    -fx-font-weight: bold;
+    -fx-font-family: "Syne ExtraBold";
+    -fx-text-fill: #f0f0f5;
+}
+
+.totalLabel {
+    -fx-text-fill: #7b7b96;
+}
+
+.percentageLabel {
+    -fx-padding: 5 0 0 0;
+    -fx-text-fill: #6bcb77;
+    -fx-font-family: "DM Sans Light";
+}
+
+.recentFileLabel {
+    -fx-font-size: 16;
+    -fx-font-family: "Syne ExtraBold";
+    -fx-text-fill: #f0f0f5;
+}
+
+.viewFileLabel {
+    -fx-font-size: 13;
+    -fx-text-fill: #4d96ff;
+    -fx-font-family: "DM Sans Light";
+}
+
+.fileNameLabel {
+    -fx-font-size: 14;
+    -fx-font-family: "DM Sans Light";
+    -fx-text-fill: white;
+}
+
+.fileLocationDetailLabel {
+    -fx-font-size: 12;
+    -fx-font-family: "DM Sans Light";
+    -fx-text-fill: #7b7b96;
+}
+
+.fileSizeLabel {
+    -fx-font-size: 11;
+    -fx-font-family: "DM Sans Light";
+    -fx-text-fill: #7b7b96;
+}
+
+.fileExtLabel {
+    -fx-font-size: 13;
+    -fx-font-family: "DM Sans Light";
+    -fx-text-fill: #4d96ff;
+    -fx-font-weight: bold;
+}
+
+.recentFileBox, .gradient-button-box {
+    -fx-background-color: #1e1e28;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 5);
+}
+
+.recentFileInfoBox {
+    -fx-background-radius: 10;
+}
+
+.recentFileInfoBox:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.03);
+}
+
+.recentFileScrollBar .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.recentFileScrollBar .scroll-bar .thumb {
+    -fx-background-color: #2F2F3B;
+    -fx-background-radius: 10;
+    -fx-background-insets: 2;
+}
+
+.recentFileScrollBar .scroll-bar .thumb:hover {
+    -fx-background-color: #a0a0a0;
+}
+
+.recentFileScrollBar .scroll-bar .thumb:pressed {
+    -fx-background-color: #808080;
+}
+
+.recentFileScrollBar .scroll-bar .track,
+.recentFileScrollBar .scroll-bar .track-background {
+    -fx-background-color: transparent;
+}
+
+.recentFileScrollBar .scroll-bar:vertical {
+    -fx-pref-width: 8px;
+}
+
+.recentFileScrollBar .scroll-bar:horizontal {
+    -fx-pref-height: 8px;
+}
+
+.recentFileScrollBar .scroll-bar .increment-button,
+.recentFileScrollBar .scroll-bar .decrement-button,
+.recentFileScrollBar .scroll-bar .increment-arrow,
+.recentFileScrollBar .scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.documentCategoryLabel {
+    -fx-text-fill: white;
+    -fx-font-size: 14;
+    -fx-font-family: "DM Sans Light";
+    -fx-font-weight: bold;
+}
+
+.sizeProgressBar {
+    -fx-pref-height: 6px;         /* thin height */
+    -fx-max-width: infinity;      /* full width of parent */
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+
+/* Track (background) */
+.sizeProgressBar .track {
+    -fx-background-color: #e0e0e0;
+    -fx-background-radius: 5;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+/* Bar (filled gradient part) */
+.sizeProgressBar .bar {
+    -fx-background-color: linear-gradient(to right, #ff6b6b, #ff9a3c);
+    -fx-background-radius: 5;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.fileCountSizeLabel {
+    -fx-font-size: 13;
+    -fx-font-family: "DM Sans Light";
+    -fx-text-fill: #7b7b96;
+}
+
+.activityDescriptionLabel {
+    -fx-text-fill: white;
+    -fx-font-size: 13;
+    -fx-font-family: "DM Sans Light"
+}
+
+.activityTimeLabel {
+    -fx-font-size: 11;
+    -fx-font-family: "DM Sans Light";
+    -fx-text-fill: #7b7b96;
+}
+
+.quickSettingLabels {
+    -fx-text-fill: white;
+    -fx-font-size: 18;
+    -fx-font-family: "DM Sans Light";
+    -fx-font-weight: bold;
+}
+
+.driveHeadLabel {
+    -fx-text-fill: white;
+    -fx-font-size: 18;
+    -fx-font-family: "DM Sans Light"
+}
+
+.driveListChoiceBox {
+    -fx-background-color: #1e1e28;
+    -fx-background-radius: 15;
+    -fx-pref-width: 700;
+    -fx-font-size: 18;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.driveListChoiceBox .label {
+    -fx-text-fill: white;
+}
+
+.driveListChoiceBox .context-menu {
+    -fx-background-color: #1e1e2f;
+    -fx-pref-width: 700;
+}
+
+.largeFilesTable {
+    -fx-font-family: "DM Sans Light";
+    -fx-font-size: 16;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.largeFilesTable .column-header-background {
+    -fx-background-color: #1f1f2e;
+}
+
+.largeFilesTable .column-header {
+    -fx-background-color: transparent;
+}
+
+.largeFilesTable .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+}
+
+.largeFilesTable .table-row-cell {
+    -fx-background-color: #1e1e2f;
+}
+
+.largeFilesTable .table-row-cell:odd {
+    -fx-background-color: #23233a;
+}
+
+.largeFilesTable .table-row-cell:selected {
+    -fx-background-color: #3a86ff;
+}
+
+.largeFilesTable .table-cell {
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+}
+
+.radio-button {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+.radio-button .radio {
+    -fx-background-color: #1e1e2f;
+}
+
+.radio-button:selected .dot {
+    -fx-background-color: #3a86ff;
+}
+
+.summaryLabel{
+    -fx-text-fill:white;
+    -fx-font-size:14px;
+    -fx-font-weight:bold;
+}
+
+.themeButton {
+    -fx-background-color: linear-gradient(to right, #3a86ff, #4361ee);
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 18 8 18;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+
+.themeButton:hover {
+    -fx-background-color: linear-gradient(to right, #4f94ff, #4a6cff);
+}
+
+.themeButton:pressed {
+    -fx-background-color: #2f6ce5;
+}
+
+.infoLabel {
+    -fx-padding: 50 0 0 0;
+    -fx-font-size: 18;
+    -fx-font-family: "DM Sans Light";
+    -fx-text-fill: #7b7b96;
+}
+
+.duplicateCard{
+    -fx-background-color:#1e1e2f;
+    -fx-padding:15;
+    -fx-background-radius:8;
+    -fx-border-radius:8;
+    -fx-border-color:#2a2a40;
+}
+
+.duplicateCard:hover{
+    -fx-border-color:#3a86ff;
+}
+
+.duplicateCard .label{
+    -fx-text-fill:white;
+}
+
+.duplicateCard .check-box{
+    -fx-text-fill:#d0d0ff;
+}
+
+.duplicate-Card-Container-Scroll .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.duplicate-Card-Container-Scroll .scroll-bar .thumb {
+    -fx-background-color: #2F2F3B;
+    -fx-background-radius: 10;
+    -fx-background-insets: 2;
+}
+
+.duplicate-Card-Container-Scroll .scroll-bar .thumb:hover {
+    -fx-background-color: #a0a0a0;
+}
+
+.duplicate-Card-Container-Scroll .scroll-bar .thumb:pressed {
+    -fx-background-color: #808080;
+}
+
+.duplicate-Card-Container-Scroll .scroll-bar .track,
+.duplicate-Card-Container-Scroll .scroll-bar .track-background {
+    -fx-background-color: transparent;
+}
+
+.duplicate-Card-Container-Scroll .scroll-bar:vertical {
+    -fx-pref-width: 8px;
+}
+
+.duplicate-Card-Container-Scroll .scroll-bar:horizontal {
+    -fx-pref-height: 8px;
+}
+
+.duplicate-Card-Container-Scroll .scroll-bar .increment-button,
+.duplicate-Card-Container-Scroll .scroll-bar .decrement-button,
+.duplicate-Card-Container-Scroll .scroll-bar .increment-arrow,
+.duplicate-Card-Container-Scroll .scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+.duplicate-Card-Container-Scroll .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.vboxStatBox {
+    -fx-alignment: center;
+    -fx-pref-width: 300;
+    -fx-background-color: #1e1e28;
+    -fx-background-radius: 10;
+}
+
+.junkStatHead {
+    -fx-font-size: 24;
+    -fx-font-family: "DM Sans Light";
+    -fx-text-fill: white;
+}
+
+.junkStatResult {
+    -fx-font-size: 18;
+    -fx-font-family: "DM Sans Light";
+    -fx-text-fill: white;
+}
+
+.junkScanButton {
+    -fx-background-radius: 30;
+    -fx-padding: 15;
+    -fx-background-color: linear-gradient(to right, #3a86ff, #4361ee);
+    -fx-text-fill: white;
+    -fx-font-size: 16;
+    -fx-font-family: "DM Sans Light";
+}
+
+.dropDownBox {
+    -fx-background-color: #2b2b2b;
+}
+
+.dropDownBox > .title {
+    -fx-padding: 10;
+    -fx-background-color: #31313B;
+}
+
+.dropDownBox > .content {
+    -fx-background-color: #30303D;
+}
+
+.junkCategory-CheckBox:selected .box {
+    -fx-background-color: #4CAF50;
+}
+
+.deleteFileButton {
+    -fx-background-radius: 8;
+    -fx-padding: 8;
+    -fx-background-color: linear-gradient(to bottom, #ff5f6d, #ff2e44);
+    -fx-text-fill: white;
+    -fx-font-size: 16;
+    -fx-font-family: "DM Sans Light";
+}
+
+.moveFileButton {
+     -fx-background-radius: 8;
+     -fx-padding: 8;
+     -fx-background-color: linear-gradient(to bottom, #2B7FFF, #155DFC);
+     -fx-text-fill: white;
+     -fx-font-size: 16;
+     -fx-font-family: "DM Sans Light";
+}
+
+.scanFilter {
+    -fx-text-fill: white;
+    -fx-font-family: "DM Sans Light";
+    -fx-font-size: 24;
+}
+
+.filter-box {
+    -fx-font-family: "DM Sans Light";
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+}
+
+.filter-box .box {
+    -fx-background-color: white;
+    -fx-border-color: #4CAF50;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+}
+
+.filter-box:selected .box {
+    -fx-background-color: #4CAF50;
+}
+
+.filter-box:selected .mark {
+    -fx-background-color: white;
+}
+
+.scanningButton {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #6366f1, #ec4899);
+    -fx-text-fill: white;
+    -fx-font-family: "DM Sans Light";
+    -fx-padding: 12 20 12 20;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.scanningButton:pressed {
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #4f46e5, #db2777);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 5, 0.2, 0, 2);
+}
+
+.specificLabel {
+    -fx-font-size: 16;
+    -fx-text-fill: #2B7FFF;
+}
+
+.specificLabel:hover {
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+.dark-list {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: #3c3c3c;
+}
+
+.dark-list .list-cell {
+    -fx-background-color: #1e1e1e;
+    -fx-text-fill: white;
+    -fx-font-family: 'Consolas';
+    -fx-font-size: 13px;
+    -fx-padding: 4px 8px;
+}
+
+.dark-list .list-cell:hover {
+    -fx-background-color: #2d2d2d;
+}
+
+.dark-list .list-cell:selected {
+    -fx-background-color: #3c3c3c;
+    -fx-text-fill: #ffffff;
+}
+
+/* thin scrollbar */
+.dark-list .scroll-bar:vertical {
+    -fx-background-color: #2d2d2d;
+    -fx-pref-width: 6px;
+}
+
+.dark-list .scroll-bar:vertical .thumb {
+    -fx-background-color: #555555;
+    -fx-background-radius: 4px;
+}
+
+.dark-list .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #777777;
+}
+
+.dark-list .scroll-bar .increment-button,
+.dark-list .scroll-bar .decrement-button {
+    -fx-pref-height: 0px;
+    -fx-min-height: 0px;
+    -fx-max-height: 0px;
+    -fx-padding: 0px;
+    -fx-background-color: transparent;
+}
+
+.dark-list .scroll-bar .increment-arrow,
+.dark-list .scroll-bar .decrement-arrow {
+    -fx-pref-height: 0px;
+    -fx-min-height: 0px;
+    -fx-max-height: 0px;
+    -fx-padding: 0px;
+    -fx-background-color: transparent;
+}
