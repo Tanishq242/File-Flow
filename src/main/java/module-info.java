@@ -12,8 +12,18 @@ module com.filescan.fileorganizer {
     requires org.apache.pdfbox;
     requires javafx.swing;
     requires mp3agic;
+    requires org.apache.commons.io;
+    requires org.lz4.java;
 
 
     opens com.filescan.fileorganizer to javafx.fxml;
     exports com.filescan.fileorganizer;
+
+    // ── THE CRITICAL FIX: open your UI packages to JavaFX ───
+    opens com.filescan.fileorganizer.ui.components to javafx.graphics, javafx.fxml;
+
+    // ── Export if other modules need access ─────────────────
+    exports com.filescan.fileorganizer.ui.components;
+
+    exports com.filescan.fileorganizer.testProgram;
 }

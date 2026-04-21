@@ -1,6 +1,7 @@
 package com.filescan.fileorganizer.service;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.Map;
 
 public class JunkFilesFinder {
     public static Map<File, List<File>> junkFiles = new HashMap<>();
+
     private static final String[] JUNK_PATHS = {
             "C:\\Windows\\Temp",
             System.getProperty("user.home") + "\\AppData\\Local\\Temp",
@@ -26,6 +28,31 @@ public class JunkFilesFinder {
     public static long totalSize = 0;
     public static int totalFiles = 0;
     public static String junkFileSize = null;
+
+    public static int deleteJunkFiles() {
+        for (Map.Entry<File, List<File>> entry : junkFiles.entrySet()) {
+
+            for (File file : entry.getValue()) {
+
+                try {
+                    if (!file.exists()) continue;
+
+                    if (!file.canWrite()) {
+                        System.out.println("⚠️ Skipped: " + file);
+                        continue;
+                    }
+
+                    Files.delete(file.toPath());
+                    System.out.println("✅ Deleted: " + file);
+
+                } catch (Exception e) {
+                    System.out.println("❌ Failed: " + file);
+                }
+            }
+        }
+
+        return 0;
+    }
 
     // ── Recursive directory scanner ─────────────────────────────────────────
     private static long scanDirectory(File dir, List<File> collected) {

@@ -3,12 +3,9 @@ package com.filescan.fileorganizer.service;
 import com.filescan.fileorganizer.model.FileType;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
-
+import org.apache.commons.io.FilenameUtils;
 import java.io.*;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -37,34 +34,217 @@ public class FileService {
             ".java", ".py", ".c", ".cpp", ".html", ".css", ".js", ".ts", ".go", ".rs",
             ".kt", ".cs", ".php", ".rb");
 
+    private static final Set<String> SKIP_FOLDERS = Set.of(
+            "node_modules", ".npm", ".yarn", ".pnpm-store",
+            ".m2", ".gradle", "build", "target",
+            ".venv", "venv", "env", "__pycache__", ".tox", "dist", "eggs", ".eggs", "site-packages",
+            "cmake-build-debug", "cmake-build-release",
+            ".idea", ".vscode", ".eclipse", ".settings",
+            ".android", "captures",
+            ".dart_tool", ".pub-cache", ".flutter",
+            ".bundle", "vendor",
+            "pkg",
+            ".docker",
+            ".git", ".svn", ".hg",
+            ".Trash", "$RECYCLE.BIN", "System Volume Information",
+            ".cache", "logs", "tmp", "temp"
+    );
+
+    private static final Set<String> GAME_EXTENSIONS = Set.of(
+            ".exe", ".dll", ".pak",
+            ".unity3d", ".unitypackage",
+            ".uasset", ".umap", ".upk",
+            ".rpgmvp", ".rpgsave",
+            ".vpk", ".bsp",
+            ".wad", ".pk3", ".pk4",
+            ".gcf", ".ncf",
+            ".bnk",
+            ".sav", ".save", ".dat",
+            ".iso", ".bin", ".cue", ".img",
+            ".cache", ".shadercache"
+    );
+
     public static Map<FileType, List<Path>> categorizedFiles = new HashMap<>();
     public static Map<FileType, List<Path>> mediaFiles = new HashMap<>();
     public static Vector<Path> largeFilesList = new Vector<>();
+    public static Map<FileType, Long> size = new HashMap<>();
 
-    public static long countFiles(Path path, Set<String> extensions) throws IOException {
-        try (Stream<Path> stream = Files.walk(path)) {
-            return stream
-                    .filter(Files::isRegularFile)
-                    .filter(p -> {
-                        try {
-                            return !Files.isHidden(p);
-                        } catch (IOException e) {
-                            return false;
-                        }
-                    })
-                    .filter(p -> {
-                        String name = p.toString().toLowerCase();
+    private static boolean isGameFolder(Path dir) {
+        // Game folders usually contain these marker files
+        Set<String> gameMarkers = Set.of(
+                "steam_api.dll",        // Steam game
+                "steam_api64.dll",      // Steam 64-bit
+                "eossdk-win64-shipping.dll", // Epic Games
+                "uplay_r1_loader.dll",  // Ubisoft
+                "bsapi.dll",            // Battle.net
+                "unins000.exe",         // Inno Setup installer (most games)
+                "engine.ini",           // Unreal Engine
+                "boot.cfg"              // Various games
+        );
 
-                        // if no filter → count all files
-                        if (extensions == null || extensions.isEmpty()) {
-                            return true;
-                        }
+        try (Stream<Path> files = Files.list(dir)) {
+            return files
+                    .map(p -> p.getFileName().toString().toLowerCase())
+                    .anyMatch(gameMarkers::contains);
 
-                        return extensions.stream()
-                                .anyMatch(name::endsWith);
-                    })
-                    .count();
+        } catch (IOException e) {
+            return false;
         }
+    }
+
+    public static Map<FileType, Long> calculateCategorySizes(
+            Map<FileType, List<Path>> categorizedFiles) {
+
+        Map<FileType, Long> sizeMap = new EnumMap<>(FileType.class);
+
+        for (Map.Entry<FileType, List<Path>> entry : categorizedFiles.entrySet()) {
+
+            FileType type = entry.getKey();
+            List<Path> files = entry.getValue();
+
+            long totalSize = 0;
+
+            for (Path file : files) {
+                try {
+                    if (Files.exists(file) && Files.isRegularFile(file)) {
+                        totalSize += Files.size(file);
+                    }
+                } catch (Exception e) {
+                    System.out.println("⚠️ Error reading size: " + file);
+                }
+            }
+
+            sizeMap.put(type, totalSize);
+        }
+
+        return sizeMap;
+    }
+
+    private static void countInPath(Path start, Map<FileType, Long> counts) {
+
+        try {
+            Files.walkFileTree(start, new SimpleFileVisitor<>() {
+
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+
+                    String name = dir.getFileName() != null
+                            ? dir.getFileName().toString().toLowerCase()
+                            : "";
+
+                    // 🚫 Skip protected/system folders early
+                    if (SKIP_FOLDERS.contains(name)
+                            || name.equals("system volume information")
+                            || name.equals("$recycle.bin")) {
+
+                        System.out.println("⏭️ Skipping folder: " + dir);
+                        return FileVisitResult.SKIP_SUBTREE;
+                    }
+
+                    // 🎮 Skip game folders
+                    if (isGameFolder(dir)) {
+                        System.out.println("🎮 Skipping game folder: " + dir);
+                        return FileVisitResult.SKIP_SUBTREE;
+                    }
+
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+
+                    try {
+                        if (!Files.isReadable(file)) {
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        String ext = "." + FilenameUtils.getExtension(file.toString()).toLowerCase();
+
+                        if (GAME_EXTENSIONS.contains(ext)) {
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        FileType type = FileType.fromPath(file);
+
+                        if (type != null && type != FileType.UNKNOWN) {
+
+                            // 📊 COUNT
+                            counts.merge(type, 1L, Long::sum);
+
+                            // 📦 SIZE
+                            long fileSize = attrs.size();
+                            size.merge(type, fileSize, Long::sum);
+
+                            // 📁 CATEGORY (ADD THIS 👇)
+                            categorizedFiles
+                                    .computeIfAbsent(type, k -> new ArrayList<>())
+                                    .add(file);
+                        }
+
+                    } catch (Exception e) {
+                        System.out.println("⚠️ Skipping file: " + file);
+                    }
+
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) {
+
+                    System.out.println("🚫 Access denied: " + file);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+
+        } catch (IOException e) {
+            System.out.println("❌ Error walking: " + start + " → " + e.getMessage());
+        }
+    }
+
+    public static Map<FileType, Long> countFilesByType(Path path) {
+        System.out.println("count file method");
+        size.clear();
+
+        Map<FileType, Long> counts = new EnumMap<>(FileType.class);
+
+        // Initialize all types to 0
+        for (FileType type : FileType.values()) {
+            counts.put(type, 0L);
+            size.put(type, 0L);
+        }
+
+        try {
+            // 👉 If specific path is given
+            if (path != null) {
+                System.out.println("📁 Scanning provided path: " + path);
+                countInPath(path, counts);
+                return counts;
+            }
+
+            // 👉 If path is null → scan all drives except C:
+            System.out.println("🌐 Scanning all drives except C:");
+
+            for (Path root : FileSystems.getDefault().getRootDirectories()) {
+                String drive = root.toString().toUpperCase();
+
+                System.out.println("Found root: " + drive);
+
+                // Skip C drive
+                if (drive.startsWith("C")) {
+                    System.out.println("⏭️ Skipping system drive: " + drive);
+                    continue;
+                }
+
+                System.out.println("🔍 Scanning drive: " + drive);
+                countInPath(root, counts);
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error in countFilesByType: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return counts;
     }
 
     // ── holds counts for one drive ────────────────────────────
@@ -144,14 +324,20 @@ public class FileService {
                 dirs[0], docs[0], music[0], pics[0], vids[0], codes[0]);
     }
 
-    public static int scanPath(boolean checkLarge, boolean checkMedia) {
+    public static int scanPath(boolean checkLarge, boolean checkMedia, File uri) {
 
         Set<String> excluded = Set.of("C:", "F:");
 
-        List<File> targetDrives = Arrays.stream(File.listRoots())
-                .filter(d -> excluded.stream()
-                        .noneMatch(ex -> d.getAbsolutePath().startsWith(ex)))
-                .toList();
+        // ✅ Use uri if provided, otherwise fall back to filtered roots
+        List<File> targetDrives;
+        if (uri != null) {
+            targetDrives = List.of(uri);  // scan only the given path
+        } else {
+            targetDrives = Arrays.stream(File.listRoots())
+                    .filter(d -> excluded.stream()
+                            .noneMatch(ex -> d.getAbsolutePath().startsWith(ex)))
+                    .toList();
+        }
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 
@@ -159,25 +345,21 @@ public class FileService {
                     .map(drive -> executor.submit(() -> scanDrive(drive, checkLarge, checkMedia)))
                     .toList();
 
-            // ✅ VERY IMPORTANT → wait for all threads
             for (Future<DriveSummary> f : futures) {
-                f.get();  // ensures scanning is finished
+                f.get();
             }
 
             for (Path path : largeFilesList) {
                 FileType type = FileType.fromPath(path);
-
                 categorizedFiles
                         .computeIfAbsent(type, k -> new ArrayList<>())
                         .add(path);
             }
 
-            // ✅ Debug (optional)
             System.out.println("Large files: " + largeFilesList.size());
             categorizedFiles.forEach((k, v) ->
                     System.out.println(k + " -> " + v.size())
             );
-
 
             return 0;
 

@@ -1,24 +1,20 @@
 package com.filescan.fileorganizer;
 
 import com.filescan.fileorganizer.controller.*;
-import com.filescan.fileorganizer.model.DuplicateFile;
+import com.filescan.fileorganizer.model.FileCount;
 import com.filescan.fileorganizer.model.FileData;
 import com.filescan.fileorganizer.model.FileType;
-import com.filescan.fileorganizer.model.JunkCategory;
 import com.filescan.fileorganizer.service.*;
 import com.filescan.fileorganizer.ui.components.*;
-import com.sun.tools.javac.Main;
 import com.filescan.fileorganizer.ui.components.CodeFileUI;
 import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -34,7 +30,6 @@ import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -42,12 +37,14 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static com.filescan.fileorganizer.ui.components.CodeFileUI.buildCodeFinderUI;
+import static com.filescan.fileorganizer.service.FileService.*;
 import static com.filescan.fileorganizer.ui.components.OverlayCircle.transparentCircle;
 import static com.filescan.fileorganizer.ui.components.dropDown.createCategory;
 
@@ -56,17 +53,26 @@ public class MainApp extends Application {
     private int WINDOW_HEIGHT = 768;
     static Timeline[] holder = new Timeline[1];
     private static int step = 0;
-
+    private static File tempFile;
+    private static FileCount fileCount = new FileCount();
+    private static VBox tempVbox;
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    public static String formatSize(long bytes) {
+        if (bytes >= 1_073_741_824) return String.format("%.2f GB", bytes / 1_073_741_824.0);
+        if (bytes >= 1_048_576) return String.format("%.2f MB", bytes / 1_048_576.0);
+        if (bytes >= 1024) return String.format("%.2f KB", bytes / 1024.0);
+        return bytes + " B";
     }
 
     public static void countUpAnimation(Label label, long max, Runnable onDone) {
 
         final long[] current = {0};
 
-        final double MIN_DELAY = 0.01;   // seconds — fast at start
+        final double MIN_DELAY = 0.001;   // seconds — fast at start
         final double MAX_DELAY = 0.05;   // seconds — slow near end
 
         Runnable scheduleNext = new Runnable() {
@@ -263,7 +269,7 @@ public class MainApp extends Application {
             if (value == 0) {
                 pi.setProgress(1.0);
                 scanLabel.setText("Scanning Done");
-                totalFilesLabel.setText("Total Files: " + FileService.largeFilesList.size());
+                totalFilesLabel.setText("Total Files: " + largeFilesList.size());
                 startButton.setDisable(false);
             }
         });
@@ -444,6 +450,7 @@ public class MainApp extends Application {
             };
 
             task.setOnSucceeded(ex -> {
+                s1.setText(formatSize(JunkFilesFinder.totalSize));
                 s2.setText(String.valueOf(JunkFilesFinder.totalFiles));
                 s3.setText(JunkFilesFinder.junkFileSize);
                 startScanButton.setDisable(false);
@@ -459,11 +466,18 @@ public class MainApp extends Application {
                 }
 
                 root.getChildren().add(deleteFileButtonBox);
+                root.getChildren().remove(buttonBox);
 
             });
 
             Thread thread = new Thread(task);
             thread.start();
+        });
+
+        deleteFileButton.setOnAction(e -> {
+            if (JunkFilesFinder.deleteJunkFiles() == 0) {
+                System.out.println("Successfully deleted the files");
+            }
         });
 
 //        for (int i = 0; i < junkCategory.length; i++) {
@@ -568,6 +582,26 @@ public class MainApp extends Application {
 
         CheckBox organizeCheckBox = new CheckBox("Do you want to organize files");
 
+        AnimationTimer timer = new AnimationTimer() {
+            double hue = 0;
+
+            @Override
+            public void handle(long now) {
+                hue = (hue + 1) % 360;
+
+                Color color = Color.hsb(hue, 1.0, 1.0);
+                String hex = String.format("#%02X%02X%02X",
+                        (int) (color.getRed()   * 255),
+                        (int) (color.getGreen() * 255),
+                        (int) (color.getBlue()  * 255)
+                );
+
+                // -fx-text-fill targets the checkbox label text
+                organizeCheckBox.setStyle("-fx-text-fill: " + hex + ";");
+            }
+        };
+        timer.start();
+
         List<CheckBox> filters = List.of(cb1, cb2, cb3, cb4);
 
         cb6.setOnAction(e -> {
@@ -598,6 +632,7 @@ public class MainApp extends Application {
             File file = directoryChooser.showDialog(stage);
             if (file != null) {
                 pathLabel.setText(file.getAbsolutePath());
+                tempFile = file;
             }
         });
 
@@ -607,7 +642,7 @@ public class MainApp extends Application {
         BorderPane scanButtonBox = new BorderPane();
         scanButtonBox.setCenter(scanButton);
 
-        VBox scanFilterBox = new VBox(10, scanFilterLabel, new HBox(20, cb1, cb2, cb3, cb4, cb6), organizeCheckBox, pathBox, scanButtonBox);
+        VBox scanFilterBox = new VBox(20, scanFilterLabel, new HBox(20, cb1, cb2, cb3, cb4, cb6), organizeCheckBox, pathBox, scanButtonBox);
 //        scanFilterBox.setPrefSize(500, 250);
         scanFilterBox.setStyle("-fx-background-color: #1e1e28;\n" +
                 "    -fx-background-radius: 15;\n" +
@@ -635,6 +670,10 @@ public class MainApp extends Application {
 //            DuplicateDialog.show(stage);
 //        });
 
+//        Map<FileType, Set<String>> fileMap = FileType.getAllTypeSets();
+
+        Long[] valuesArray = new Long[5];
+        Long[] sizeArray = new Long[5];
         scanButton.setOnAction(e -> {
             scanningBoxAnimation(scanInfoBox, 400);
             TranslateTransition slide2 = new TranslateTransition(Duration.millis(350), scanFilterBox);
@@ -642,7 +681,13 @@ public class MainApp extends Application {
             slide2.setToY(0);
             slide2.play();
 
-            File[] file = File.listRoots();
+            File[] file;
+            if (tempFile != null) {
+                file = new File[]{tempFile};
+            } else {
+                file = File.listRoots();
+            }
+
             StringBuilder str = new StringBuilder();
             for (File i : file) {
                 str.append(i.getAbsolutePath()).append(" ");
@@ -661,14 +706,84 @@ public class MainApp extends Application {
 
                 final int finalTotalTasks = totalTasks;
 
+                System.out.println("Total tasks = " + finalTotalTasks);
+                System.out.println("cb1: " + cb1.isSelected());
+                System.out.println("cb2: " + cb2.isSelected());
+                System.out.println("cb3: " + cb3.isSelected());
+                System.out.println("cb4: " + cb4.isSelected());
+
                 // If nothing selected, do nothing
-                if (finalTotalTasks == 0) return;
+                if (finalTotalTasks == 0) {
+                    System.out.println("Entering no-checkbox block");
+
+                    Task<Void> task = new Task<>() {
+                        @Override
+                        protected Void call() throws Exception {
+                            System.out.println("Task started");
+                            Map<FileType, Long> result;
+                            if (organizeCheckBox.isSelected()) {
+                                result = countFilesByType(Paths.get(str.toString().trim()));
+                                for (Map.Entry<FileType, List<Path>> entry : categorizedFiles.entrySet()) {
+
+                                    FileType type = entry.getKey();
+                                    List<Path> files = entry.getValue();
+                                    System.out.println(type + " -> " + files.size());
+                                    FileOrganize.organize(files);
+                                }
+
+                                Platform.runLater(() -> CompletionDialog.showCompletionDialog(stage));
+
+                            } else {
+                                result = countFilesByType(null);
+                            }
+
+                            System.out.println("Result: " + result);
+//
+                            // Store values in array
+                            valuesArray[0] = result.get(FileType.DOCUMENT);  // Document
+                            valuesArray[1] = result.get(FileType.MUSIC);     // Music
+                            valuesArray[2] = result.get(FileType.VIDEO);     // Video
+                            valuesArray[3] = result.get(FileType.IMAGE);   // Picture
+                            valuesArray[4] = result.get(FileType.CODE);      // Code
+
+                            // Access elements
+                            for (Long value : valuesArray) {
+                                System.out.println(value);
+                            }
+
+                            sizeArray[0] = size.get(FileType.DOCUMENT);
+                            sizeArray[1] = size.get(FileType.MUSIC);
+                            sizeArray[2] = size.get(FileType.VIDEO);
+                            sizeArray[3] = size.get(FileType.IMAGE);
+                            sizeArray[4] = size.get(FileType.CODE);
+
+                            return null;
+                        }
+                    };
+
+                    task.setOnFailed(ev -> {
+                        System.out.println("Task failed!");
+                        task.getException().printStackTrace();
+                    });
+
+                    task.setOnSucceeded(ev -> {
+                        System.out.println("scanning task is completed");
+                        SideBarController.changeContent(tempVbox, () -> mainDashBoard(valuesArray, sizeArray));
+                    });
+
+                    new Thread(task).start();
+                }
 
                 AtomicInteger completedTasks = new AtomicInteger(0);
 
                 Runnable onTaskFinished = () -> {
+
                     if (completedTasks.incrementAndGet() == finalTotalTasks) {
-                        Platform.runLater(() -> scanResultDialogBox.show(stage));
+
+                        Platform.runLater(() -> {
+                            scanResultDialogBox.show(stage, scanInfoBox);
+                            scanFilterBox.setTranslateY(-250);
+                        });
                     }
                 };
 
@@ -715,7 +830,7 @@ public class MainApp extends Application {
                     Task<Void> task3 = new Task<>() {
                         @Override
                         protected Void call() {
-                            FileService.scanPath(cb2.isSelected(), cb4.isSelected());
+                            scanPath(cb2.isSelected(), cb4.isSelected(), tempFile);
                             return null;
                         }
                     };
@@ -806,7 +921,7 @@ public class MainApp extends Application {
         return new VBox(20, firstText, scanInfoBox, scanFilterBox, statBox);
     }
 
-    public static Parent mainDashBoard() {
+    public static Parent mainDashBoard(Long[] fileCounts, Long[] sizeArray) {
         VBox content = new VBox();
 
         Label firstText = new Label("DashBoard ");
@@ -843,8 +958,13 @@ public class MainApp extends Application {
             Label fileCountLabel = new Label();
             fileCountLabel.getStyleClass().add("fileCountLabel");
 
-            countUpAnimation(fileCountLabel, 10, () -> {
-            });
+            if (fileCounts != null) {
+                countUpAnimation(fileCountLabel, fileCounts[i], () -> {
+                });
+            } else {
+                fileCountLabel.setText("-");
+            }
+
 
             Label totalLabel = new Label("Total " + category[i]);
             totalLabel.getStyleClass().add("totalLabel");
@@ -988,6 +1108,11 @@ public class MainApp extends Application {
         categoryFileHead.getChildren().addAll(categoryFileLabel);
 
         categoryFolderBox.getChildren().addAll(categoryFileHead);
+
+        double temp = 0;
+        Long totalSpace = DrivesInfo.getTotalSize();
+        double originalTotal = totalSpace;
+
         for (int i = 0; i < 5; i++) {
             VBox storageDetailBox = new VBox(5);
             storageDetailBox.setPadding(new Insets(0, 0, 10, 0));
@@ -999,7 +1124,7 @@ public class MainApp extends Application {
             Label documentLabel = new Label(category[i], orangeCircle);
             documentLabel.getStyleClass().add("documentCategoryLabel");
             HBox hb1 = new HBox(documentLabel);
-            Label fileCountSizeLabel = new Label("1,248 files | 48 GB");
+            Label fileCountSizeLabel = new Label("0 files | 48 GB");
             fileCountSizeLabel.getStyleClass().add("fileCountSizeLabel");
 
             Region region = new Region();
@@ -1009,11 +1134,26 @@ public class MainApp extends Application {
             hb2.setAlignment(Pos.CENTER);
 
             ProgressBar sizeProgressBar = new ProgressBar();
-            sizeProgressBar.setProgress(new Random().nextFloat());
+            sizeProgressBar.setProgress(0);
             sizeProgressBar.getStyleClass().add("sizeProgressBar");
             storageDetailBox.getChildren().addAll(hb2, sizeProgressBar);
             categoryFolderBox.getChildren().add(storageDetailBox);
+
+            if (fileCounts != null) {
+
+                temp = (double) sizeArray[i] / originalTotal;
+
+                fileCountSizeLabel.setText(
+                        fileCounts[i] + " files | " + formatSize(sizeArray[i])
+                );
+
+                sizeProgressBar.setProgress(temp);
+
+                System.out.println("Category %: " + (temp * 100));
+            }
         }
+
+
 
         BorderPane buttonBox = new BorderPane();
         buttonBox.getStyleClass().add("gradient-button-box");
@@ -1051,8 +1191,8 @@ public class MainApp extends Application {
 
         VBox recentActivityList = new VBox(8);
 
-        for (int i = 0; i < 10; i++) {
-            ImageView deleteIcon = new ImageView(new Image(MainApp.class.getResourceAsStream("/icons/delete.png")));
+        if (fileCounts != null) {
+            ImageView deleteIcon = new ImageView(new Image(MainApp.class.getResourceAsStream("/icons/scan-folder.png")));
             deleteIcon.setFitWidth(19);
             deleteIcon.setFitHeight(19);
             StackPane circleBg = new StackPane(deleteIcon);
@@ -1066,7 +1206,12 @@ public class MainApp extends Application {
                             "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 10, 0, 0, 5);"
             );
 
-            Label activityDescriptionLabel = new Label("Moved 23 files to Archive/2024 via auto-rule");
+            long totalFiles = 0;
+            for (int i = 0; i < fileCounts.length; i++) {
+                totalFiles += fileCounts[i];
+            }
+
+            Label activityDescriptionLabel = new Label("System Scan / " + totalFiles + " files found");
             activityDescriptionLabel.getStyleClass().add("activityDescriptionLabel");
             Label activityTimeLabel = new Label("2 minutes ago");
             activityTimeLabel.getStyleClass().add("activityTimeLabel");
@@ -1138,8 +1283,9 @@ public class MainApp extends Application {
 
         //Right Side Content
         VBox content = new VBox();
+        tempVbox = content;
         content.getStyleClass().add("right-side-vbox");
-        content.getChildren().addAll(mainDashBoard());
+        content.getChildren().addAll(mainDashBoard(null, null));
 
         Label appName = new Label("FileFlow");
         appName.getStyleClass().add("appName");
@@ -1181,15 +1327,15 @@ public class MainApp extends Application {
         settingIcon.setIconSize(19);
 
         Label labMain = new Label("MAIN");
-        Label labDashboard = SideBarController.createNavLabel("Dashboard", dashboardIcon, () -> SideBarController.changeContent(content, MainApp::mainDashBoard));
+        Label labDashboard = SideBarController.createNavLabel("Dashboard", dashboardIcon, () -> SideBarController.changeContent(content, () -> mainDashBoard(null, null)));
         Label labScan = SideBarController.createNavLabel("Scan System", scanIcon, () -> SideBarController.changeContent(content, () -> scanSystemDashBoard(primaryStage)));
         Label labLargeFiles = SideBarController.createNavLabel("Large Files", largeFileIcon, () -> SideBarController.changeContent(content, MainApp::largeFileDashBoard));
         Label labDuplicates = SideBarController.createNavLabel("Duplicates", duplicateFileIcon, () -> SideBarController.changeContent(content, MainApp::duplicateFileDashBoard));
-        Label labCompress = SideBarController.createNavLabel("Compress Files", compressFileIcon, () -> SideBarController.changeContent(content, null));
+        Label labCompress = SideBarController.createNavLabel("Compress Files", compressFileIcon, () -> SideBarController.changeContent(content, () -> new FileCompressionUI().openUI()));
         Label labJunk = SideBarController.createNavLabel("Junk Files", junkFileIcon, () -> SideBarController.changeContent(content, MainApp::junkFileDashBoard));
         Label labCode = SideBarController.createNavLabel("Code Files", codeFileIcon, () -> SideBarController.changeContent(content, CodeFileUI::buildCodeFinderUI));
         Label labTransfer = SideBarController.createNavLabel("File Transfer", fileTransferIcon, () -> SideBarController.changeContent(content, MainApp::fileTransferDashBoard));
-        Label labSetting = SideBarController.createNavLabel("Setting", settingIcon, () -> SideBarController.changeContent(content, null));
+        Label labSetting = SideBarController.createNavLabel("Setting", settingIcon, () -> SideBarController.changeContent(content, () -> new SettingUI().openSetting()));
         SideBarController.selectedLabel = labDashboard;
 
         labDashboard.setGraphicTextGap(13);

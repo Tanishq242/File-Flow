@@ -13,15 +13,23 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 public class DrivesInfo {
     static int count = 0;
-    public static void listDrive() {
+
+    public static String formatSize(long bytes) {
+        if (bytes >= 1_073_741_824) return String.format("%.2f GB", bytes / 1_073_741_824.0);
+        if (bytes >= 1_048_576) return String.format("%.2f MB", bytes / 1_048_576.0);
+        if (bytes >= 1024) return String.format("%.2f KB", bytes / 1024.0);
+        return bytes + " B";
+    }
+
+    public static long getTotalSize() {
         SystemInfo si = new SystemInfo();
+        long total = 0;
 
         for (HWDiskStore disk : si.getHardware().getDiskStores()) {
-            System.out.println("Model: " + disk.getModel());
-            System.out.println("Size: " + disk.getSize() / (1024 * 1024 * 1024));
-            System.out.println("Partitions: " + disk.getPartitions());
-            System.out.println("------------------");
+            total += disk.getSize();
         }
+
+        return total;
     }
 
     public static void pathCount() {

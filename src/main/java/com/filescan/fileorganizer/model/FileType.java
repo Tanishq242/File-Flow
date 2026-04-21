@@ -1,17 +1,21 @@
 package com.filescan.fileorganizer.model;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public enum FileType {
+    UNKNOWN(Set.of()),
     MUSIC   (Set.of(".mp3", ".wav", ".flac", ".aac", ".ogg")),
-    IMAGE   (Set.of(".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp")),
+    IMAGE   (Set.of(".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg")),
     VIDEO   (Set.of(".mp4", ".mkv", ".avi", ".mov", ".wmv", ".flv", ".webm", ".m4v", ".mpeg")),
-    DOCUMENT(Set.of(".pdf", ".docx", ".doc", ".txt", ".xlsx", ".pptx")),
+    DOCUMENT(Set.of(".pdf", ".docx", ".doc", ".txt", ".xlsx", ".pptx", ".json")),
     CODE    (Set.of(".java", ".py", ".c", ".cpp", ".html", ".css", ".js", ".ts", ".go", ".rs",
-            ".kt", ".cs", ".php", ".rb"));
+            ".kt", ".cs", ".php", ".rb", ".xml")),
+    ARCHIVE (Set.of(".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz", ".tgz", ".tar.gz", ".tar.bz2", ".tar.xz", ".iso", ".cab", ".arj", ".lz", ".lzma"));
 
     private final Set<String> extensions;
 
@@ -48,6 +52,18 @@ public enum FileType {
 
     public static boolean isVideo(Path path) {
         return FileType.fromPath(path) == FileType.VIDEO;
+    }
+
+    public static Map<FileType, Set<String>> getAllTypeSets() {
+        return Arrays.stream(FileType.values())
+                .collect(Collectors.toMap(
+                        type -> type,
+                        FileType::getExtensions
+                ));
+    }
+
+    public static Set<String> getAllExtensions() {
+        return EXTENSION_MAP.keySet();
     }
 
     /**

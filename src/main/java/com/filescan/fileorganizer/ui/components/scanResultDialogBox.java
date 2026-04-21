@@ -762,6 +762,7 @@ public class scanResultDialogBox {
             System.out.println("back button in large method");
             container.getChildren().remove(categories2);
             root.getChildren().remove(BackBtn);
+            container.getChildren().add(categories);
         });
 
         container.getChildren().add(categories2);
@@ -809,11 +810,17 @@ public class scanResultDialogBox {
         mediaAvailable = true;
     }
 
-    public static void show(Stage owner) {
+    public static void show(Stage owner, VBox box) {
         Stage dialog = new Stage();
         dialog.initOwner(owner);
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle("Duplicate Files");
+
+        dialog.setOnCloseRequest(e -> {
+            System.out.println("box is closed");
+            box.setOpacity(0);          // hidden initially
+            box.setTranslateY(-30);     // start slightly above
+        });
 
         TilePane categories = new TilePane();
         categories.setHgap(20);
