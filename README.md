@@ -163,25 +163,25 @@ Add screenshot here
 ### Scan Center
 
 ```md
-![Scan Center](images/scan-center.png)
+![Scan Center](images/scan.png)
 ```
 
 ### Code File Scanner
 
 ```md
-![Code Scanner](images/code-scanner.png)
+![Code Scanner](images/code.png)
 ```
 
 ### Junk File Scanner
 
 ```md
-![Junk Scanner](images/junk-scanner.png)
+![Junk Scanner](images/junk.png)
 ```
 
 ### Large File Scanner
 
 ```md
-![Large Files](images/large-files.png)
+![Large Files](images/large.png)
 ```
 
 ---
