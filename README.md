@@ -157,7 +157,7 @@ User Interface (JavaFX)
 Add screenshot here
 
 ```md
-![Dashboard]((https://raw.githubusercontent.com/Tanishq242/File-Flow/master/images/dashboard.png)
+![Dashboard](images/dashboard.png)
 ```
 
 ### Scan Center
