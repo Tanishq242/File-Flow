@@ -150,41 +150,27 @@ User Interface (JavaFX)
 
 ---
 
-## 📸 Screenshots
+## 📸 Application Screenshots
 
-### Dashboard
+<p align="center">
+  <img src="images/dashboard.png" width="900">
+</p>
 
-Add screenshot here
+<p align="center">
+  <img src="images/scan.png" width="900">
+</p>
 
-```md
-![Dashboard](.../File-Flow/master/images/dashboard.png)
-```
+<p align="center">
+  <img src="images/code.png" width="900">
+</p>
 
-### Scan Center
+<p align="center">
+  <img src="images/junk.png" width="900">
+</p>
 
-```md
-![Scan Center](images/scan.png)
-```
-
-### Code File Scanner
-
-```md
-![Code Scanner](images/code.png)
-```
-
-### Junk File Scanner
-
-```md
-![Junk Scanner](images/junk.png)
-```
-
-### Large File Scanner
-
-```md
-![Large Files](images/large.png)
-```
-
----
+<p align="center">
+  <img src="images/large.png" width="900">
+</p>
 
 ## ⚙ Installation
 
